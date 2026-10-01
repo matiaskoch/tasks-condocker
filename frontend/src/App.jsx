@@ -27,11 +27,17 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(tareaAEnviar),
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error('Error al actualizar la tarea');
+          return res.json();
+        })
         .then((tareaActualizada) => {
-          setTareas(tareas.map((t) => (t.id === tareaActualizada.id ? tareaActualizada : t)));
+          setTareas((prev) =>
+            prev.map((t) => (t.id === tareaActualizada.id ? tareaActualizada : t))
+          );
           setTareaEditando(null);
-        });
+        })
+        .catch(console.error);
     } else {
       // Crear: POST
       fetch(`${API_URL}/tasks`, {
@@ -39,50 +45,51 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(tareaAEnviar),
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error('Error al crear la tarea');
+          return res.json();
+        })
         .then((tareaCreada) => {
-          setTareas([...tareas, tareaCreada]);
-        });
+          setTareas((prev) => [...prev, tareaCreada]);
+        })
+        .catch(console.error);
     }
   }
 
   function eliminarTarea(id) {
-  fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' })
-    .then(() => {
-      setTareas(tareas.filter((t) => t.id !== id));
-    });
-}
-
-function finalizarTarea(id) {
-  fetch(`${API_URL}/tasks/${id}/finalizar`, { method: 'PATCH' })
-    .then((res) => res.json())
-    .then((tareaActualizada) => {
-      setTareas(tareas.map((t) => (t.id === id ? tareaActualizada : t)));
-    });
-}
-
-
-  function agregarTarea(nuevaTarea) {
-    const tareaAEnviar = {
-    ...nuevaTarea,
-    fechaCierre: nuevaTarea.fechaCierre || null,
-  };
-
-    fetch(`${API_URL}/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tareaAEnviar),
-    })
-      .then((res) => res.json())
-      .then((tareaCreada) => {
-        setTareas([...tareas, tareaCreada]);
-      });
+    fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Error al eliminar');
+        setTareas((prev) => prev.filter((t) => t.id !== id));
+        if (tareaEditando?.id === id) {
+          setTareaEditando(null);
+        }
+      })
+      .catch(console.error);
   }
 
- return (
+  function finalizarTarea(id) {
+    fetch(`${API_URL}/tasks/${id}/finalizar`, { method: 'PATCH' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Error al finalizar');
+        return res.json();
+      })
+      .then((tareaActualizada) => {
+        setTareas((prev) =>
+          prev.map((t) => (t.id === id ? tareaActualizada : t))
+        );
+      })
+      .catch(console.error);
+  }
+
+  return (
     <div>
       <h1>Gestor de Tareas</h1>
-      <FormularioTarea onGuardar={guardarTarea} tareaEditando={tareaEditando} />
+      <FormularioTarea
+        onGuardar={guardarTarea}
+        tareaEditando={tareaEditando}
+        onCancelar={() => setTareaEditando(null)}
+      />
       <ListarTareas
         tareas={tareas}
         onEliminar={eliminarTarea}

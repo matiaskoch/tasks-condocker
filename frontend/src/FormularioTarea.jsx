@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
 import './FormularioTarea.css';
 
-function FormularioTarea({ onGuardar, tareaEditando }) {
-  const [form, setForm] = useState({
-    nombreProyecto: '',
-    tipoActividad: '',
-    estado: 'Pendiente',
-    resumen: '',
-    descripcion: '',
-    prioridad: 'Baja',
-    informador: '',
-    personaAsignada: '',
-    precondicion: '',
-    fechaCreacion: '',
-    fechaCierre: '',
-    sprint: '',
-  });
+const FORM_INICIAL = {
+  nombreProyecto: '',
+  tipoActividad: '',
+  estado: 'Pendiente',
+  resumen: '',
+  descripcion: '',
+  prioridad: 'Baja',
+  informador: '',
+  personaAsignada: '',
+  precondicion: '',
+  fechaCreacion: '',
+  fechaCierre: '',
+  sprint: '',
+};
+
+function FormularioTarea({ onGuardar, tareaEditando, onCancelar }) {
+  const [form, setForm] = useState(FORM_INICIAL);
 
   useEffect(() => {
     if (tareaEditando) {
@@ -33,22 +35,29 @@ function FormularioTarea({ onGuardar, tareaEditando }) {
         fechaCierre: tareaEditando.fecha_cierre?.slice(0, 10) || '',
         sprint: tareaEditando.sprint || '',
       });
+    } else {
+      setForm(FORM_INICIAL);
     }
   }, [tareaEditando]);
 
   function handleChange(e) {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   function handleSubmit(e) {
     e.preventDefault();
     onGuardar(form);
+    if (!tareaEditando) {
+      setForm(FORM_INICIAL);
+    }
   }
 
   return (
     <form className="tarea-form-card" onSubmit={handleSubmit}>
-      <h2 className="form-title">Nueva Tarea</h2>
+      <h2 className="form-title">
+        {tareaEditando ? `Editando Tarea #${tareaEditando.id}` : 'Nueva Tarea'}
+      </h2>
 
       <div className="form-grid">
         <div className="form-group">
@@ -197,7 +206,18 @@ function FormularioTarea({ onGuardar, tareaEditando }) {
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="form-submit-btn">Guardar</button>
+        {tareaEditando && (
+          <button
+            type="button"
+            className="form-btn-cancelar"
+            onClick={onCancelar}
+          >
+            Cancelar
+          </button>
+        )}
+        <button type="submit" className="form-submit-btn">
+          {tareaEditando ? 'Actualizar Cambios' : 'Guardar'}
+        </button>
       </div>
     </form>
   );

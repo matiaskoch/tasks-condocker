@@ -84,8 +84,27 @@
 .form-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
+}
+
+.form-btn-cancelar {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-btn-cancelar:hover {
+  background: var(--code-bg);
+  color: var(--text-h);
 }
 
 .form-submit-btn {
